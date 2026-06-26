@@ -1,5 +1,6 @@
 name: CI Pipeline
 
+# This workflow is triggered on push and pull request events to the develop and master branches.
 on:
   workflow_dispatch:
   push:
@@ -13,22 +14,32 @@ on:
 
 jobs:
   build:
+  #Runs on latest windows version
     runs-on: windows-latest
-
+    #checkouts on the repo
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+     #Sets up the latest version of .Net
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-
+          dotnet-version: '10.0.x'
+      #installs any dependencies
       - name: Restore dependencies
         run: dotnet restore
-
+      #builds the application
       - name: Build application
         run: dotnet build --configuration Release --no-restore
-
+      #Runs any available Unit/Integration tests
       - name: Run tests
         run: dotnet test --configuration Release --no-build
+      #Publishes the project
+      - name: Publish application
+        run: dotnet publish --configuration Release --no-build --output ./publish
+      #Uploads the published artifact to the workflow
+      - name: Upload published artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-app
+          path: ./publish

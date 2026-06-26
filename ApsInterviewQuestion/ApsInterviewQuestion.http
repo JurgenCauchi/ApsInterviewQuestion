@@ -1,0 +1,6 @@
+@ApsInterviewQuestion_HostAddress = http://localhost:5085
+
+GET {{ApsInterviewQuestion_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

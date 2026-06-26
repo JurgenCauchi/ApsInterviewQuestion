@@ -20,6 +20,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/health", () => "API is running");
+app.MapGet("/health", () => "API is running!");
 
 app.Run();

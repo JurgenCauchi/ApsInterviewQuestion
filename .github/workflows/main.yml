@@ -33,7 +33,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
       #Runs any available Unit/Integration tests
       - name: Run tests
-        run: dotnet test --configuration Release --no-buil
+        run: dotnet test --configuration Release --no-build
 
       #Publishes the Test application to a folder for deployment
       - name: Publish Test artifact

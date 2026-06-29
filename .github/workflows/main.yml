@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CICD Pipeline
 
 # This workflow is triggered on push and pull request events to the develop and master branches.
 on:
@@ -15,7 +15,7 @@ on:
 jobs:
   build:
   #Runs on latest windows version
-    runs-on: windows-latest
+    runs-on: self-hosted
     #checkouts on the repo
     steps:
       - name: Checkout repository
@@ -34,12 +34,49 @@ jobs:
       #Runs any available Unit/Integration tests
       - name: Run tests
         run: dotnet test --configuration Release --no-build
-      #Publishes the project
-      - name: Publish application
-        run: dotnet publish --configuration Release --no-build --output ./publish
-      #Uploads the published artifact to the workflow
-      - name: Upload published artifact
+
+      #Publishes the Test application to a folder for deployment
+      - name: Publish Test artifact
+        if: github.ref == 'refs/heads/develop'
+        run: dotnet publish --configuration Release --no-build --output ./publish-test
+        env:
+            ASPNETCORE_ENVIRONMENT: Test
+
+      #uploads it after being published
+      - name: Upload Test artifact
+        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
-          name: published-app
-          path: ./publish
+          name: test-app
+          path: ./publish-test
+
+      #Publishes the Test application to a folder for deployment
+      - name: Publish Production artifact
+        if: github.ref == 'refs/heads/master'
+        run: dotnet publish --configuration Release --no-build --output ./publish-production
+        env:
+            ASPNETCORE_ENVIRONMENT: Production
+
+      #uploads it after being published
+      - name: Upload Production artifact
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-app
+          path: ./publish-production
+
+      #Deploys to test directory
+      - name: Deploy to Test
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          Stop-Service -Name "TestApp" -ErrorAction SilentlyContinue
+          Copy-Item -Path ./publish-test/* -Destination "C:\deployments\test" -Recurse -Force
+          Start-Service -Name "TestApp" -ErrorAction SilentlyContinue
+
+      #Deploys to production directory
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/master'
+        run: |
+          Stop-Service -Name "ProductionApp" -ErrorAction SilentlyContinue
+          Copy-Item -Path ./publish-production/* -Destination "C:\deployments\production" -Recurse -Force
+          Start-Service -Name "ProductionApp" -ErrorAction SilentlyContinue

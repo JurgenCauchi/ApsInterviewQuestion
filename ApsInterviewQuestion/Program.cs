@@ -22,4 +22,9 @@ app.MapControllers();
 
 app.MapGet("/health", () => "API is running!");
 
+app.MapGet("/environment", (IConfiguration config) =>
+{
+    return config["EnvironmentName"] ?? "No environment configured";
+});
+
 app.Run();
